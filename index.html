@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepCacheCleaner v3.0 - Windows Deep Cache Wiper</title>
+  <meta name="description" content="Deep automated Windows cache cleaner. Wipes 38 cache locations across 8 phases — including Windows Update leftovers, browser cache, crash dumps, and app data. Zero dependencies.">
+  <meta property="og:title" content="DeepCacheCleaner v3.0">
+  <meta property="og:description" content="38 cache locations. 8 phases. Zero dependencies. The deepest Windows cleaner in a single .bat file.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:   #07080C;
+      --bg2:  #0C0E14;
+      --bg3:  #111420;
+      --bg4:  #171B28;
+      --border:  rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.11);
+      --border3: rgba(255,255,255,0.18);
+      --accent:      #B2FF00;
+      --accent-dim:  rgba(178,255,0,0.10);
+      --accent-glow: rgba(178,255,0,0.22);
+      --red:     #FF4545;
+      --red-dim: rgba(255,69,69,0.12);
+      --yellow:     #FFB400;
+      --yellow-dim: rgba(255,180,0,0.12);
+      --blue:     #4DAAFF;
+      --blue-dim: rgba(77,170,255,0.12);
+      --text:   #E6EAF4;
+      --text2:  #8891A8;
+      --text3:  #4A5068;
+      --mono: 'JetBrains Mono', monospace;
+      --body: 'Outfit', sans-serif;
+      --r:  8px;
+      --rl: 14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--body); line-height: 1.6; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw; height: 62px;
+      background: rgba(7,8,12,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: var(--mono); font-size: 15px; font-weight: 800; color: var(--accent); text-decoration: none; letter-spacing: -0.5px; }
+    .logo span { color: var(--text); }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-right { display: flex; gap: 10px; align-items: center; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 20px; border-radius: var(--r);
+      font-family: var(--body); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .18s; text-decoration: none; border: none; line-height: 1;
+    }
+    .btn-primary { background: var(--accent); color: #07080C; }
+    .btn-primary:hover { background: #C8FF33; transform: translateY(-1px); box-shadow: 0 0 28px var(--accent-glow); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+    .btn-ghost:hover { background: var(--bg3); border-color: var(--border3); }
+    .btn-lg { padding: 13px 28px; font-size: 15px; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 110px 5vw 80px; position: relative; overflow: hidden; text-align: center;
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(178,255,0,0.035) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(178,255,0,0.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, black, transparent);
+    }
+    .hero-glow {
+      position: absolute; top: -240px; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 900px; pointer-events: none;
+      background: radial-gradient(circle, rgba(178,255,0,0.055) 0%, transparent 65%);
+    }
+    .badge {
+      position: relative; display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 100px; margin-bottom: 32px;
+      border: 1px solid rgba(178,255,0,0.28); background: rgba(178,255,0,0.06);
+      font-family: var(--mono); font-size: 12px; color: var(--accent);
+    }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+    .hero h1 {
+      font-family: var(--mono); font-size: clamp(40px, 7vw, 82px);
+      font-weight: 800; line-height: 1.04; letter-spacing: -2.5px;
+      margin-bottom: 22px; position: relative;
+    }
+    .hero h1 .ac { color: var(--accent); }
+    .hero-sub {
+      font-size: clamp(16px, 1.8vw, 19px); color: var(--text2);
+      max-width: 560px; margin: 0 auto 38px; font-weight: 400;
+    }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 64px; }
+
+    /* TERMINAL */
+    .terminal {
+      width: 100%; max-width: 700px; background: var(--bg2);
+      border: 1px solid var(--border2); border-radius: var(--rl);
+      overflow: hidden; position: relative; z-index: 2;
+      box-shadow: 0 48px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(178,255,0,0.06), 0 0 60px rgba(178,255,0,0.04);
+    }
+    .term-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px; background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .td { width: 12px; height: 12px; border-radius: 50%; }
+    .td:nth-child(1){background:#FF5F57} .td:nth-child(2){background:#FFBD2E} .td:nth-child(3){background:#28C840}
+    .term-title { flex: 1; text-align: center; font-family: var(--mono); font-size: 12px; color: var(--text3); }
+    .term-body { padding: 18px 20px; font-family: var(--mono); font-size: 12.5px; line-height: 1.85; min-height: 260px; }
+    .tl { display: block; }
+    .t-header { color: var(--accent); font-weight: 700; }
+    .t-phase { color: #4DAAFF; font-weight: 700; }
+    .t-ok { color: #4ADE80; }
+    .t-skip { color: var(--text3); }
+    .t-dim { color: var(--text2); }
+    .t-cursor { display: inline-block; width: 8px; height: 13px; background: var(--accent); animation: blink 1s step-end infinite; vertical-align: text-bottom; margin-left: 1px; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* STATS */
+    .stats {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stat {
+      padding: 36px 24px; display: flex; flex-direction: column;
+      align-items: center; gap: 7px; border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-n { font-family: var(--mono); font-size: 42px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .stat-n sup { font-size: 20px; }
+    .stat-l { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+
+    /* SECTION BASE */
+    .sec { padding: 96px 5vw; }
+    .sec-alt { background: var(--bg2); }
+    .sec-label { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .15em; margin-bottom: 14px; }
+    h2 { font-family: var(--mono); font-size: clamp(28px, 4vw, 46px); font-weight: 800; line-height: 1.09; letter-spacing: -1.5px; margin-bottom: 14px; }
+    .sec-sub { font-size: 17px; color: var(--text2); max-width: 540px; line-height: 1.65; margin-bottom: 56px; }
+    .ac { color: var(--accent); }
+
+    /* FEATURES */
+    .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .feat-card {
+      background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rl);
+      padding: 28px 26px; transition: border-color .25s, transform .25s;
+    }
+    .feat-card:hover { border-color: rgba(178,255,0,0.3); transform: translateY(-3px); }
+    .feat-icon {
+      width: 46px; height: 46px; border-radius: var(--r);
+      background: var(--accent-dim); border: 1px solid rgba(178,255,0,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 21px; margin-bottom: 18px;
+    }
+    .feat-card h3 { font-family: var(--mono); font-size: 14px; font-weight: 700; margin-bottom: 10px; letter-spacing: -.3px; }
+    .feat-card p { font-size: 14px; color: var(--text2); line-height: 1.68; }
+    .ic { font-family: var(--mono); font-size: 11px; background: var(--accent-dim); color: var(--accent); padding: 2px 6px; border-radius: 4px; }
+
+    /* PHASES */
+    .phases-wrap { display: grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: start; }
+    .p-tabs { display: flex; flex-direction: column; gap: 5px; }
+    .p-tab {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--r);
+      background: var(--bg2); cursor: pointer; transition: all .2s;
+    }
+    .p-tab:hover { background: var(--bg3); border-color: var(--border2); }
+    .p-tab.active { border-color: rgba(178,255,0,0.38); background: var(--accent-dim); }
+    .p-num { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--text3); min-width: 30px; }
+    .p-tab.active .p-num { color: var(--accent); }
+    .p-tname { font-size: 13px; font-weight: 600; color: var(--text2); }
+    .p-tab.active .p-tname { color: var(--text); }
+    .p-panel { display: none; }
+    .p-panel.active { display: block; }
+    .p-content { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--rl); padding: 30px 28px; }
+    .p-head { margin-bottom: 26px; }
+    .p-head h3 { font-family: var(--mono); font-size: 18px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 8px; }
+    .p-head p { font-size: 14px; color: var(--text2); }
+    .p-items { display: flex; flex-direction: column; gap: 9px; }
+    .p-item { display: grid; grid-template-columns: 38px 1fr; gap: 12px; align-items: start; padding: 13px 15px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); }
+    .p-item-n { font-family: var(--mono); font-size: 10px; font-weight: 800; color: var(--accent); background: var(--accent-dim); border-radius: 4px; padding: 3px 5px; text-align: center; }
+    .p-item h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .p-item-path { font-family: var(--mono); font-size: 10.5px; color: var(--text3); line-height: 1.5; }
+    .tag-skip { color: var(--red); font-size: 10px; font-weight: 400; }
+
+    /* STEPS */
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; position: relative; }
+    .steps::before {
+      content: ''; position: absolute; top: 36px; left: 16.66%; right: 16.66%; height: 1px;
+      background: repeating-linear-gradient(90deg, var(--border3) 0, var(--border3) 5px, transparent 5px, transparent 10px);
+    }
+    .step { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rl); padding: 28px 26px; position: relative; }
+    .step-n {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--accent); color: #07080C;
+      font-family: var(--mono); font-size: 18px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px; position: relative; z-index: 1;
+    }
+    .step h3 { font-family: var(--mono); font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .step p { font-size: 14px; color: var(--text2); line-height: 1.65; }
+    .code-pill {
+      display: block; margin-top: 14px; padding: 10px 14px;
+      background: var(--bg); border: 1px solid var(--border2); border-radius: var(--r);
+      font-family: var(--mono); font-size: 11.5px; color: var(--accent);
+    }
+
+    /* WARNINGS */
+    .warn-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; }
+    .warn {
+      display: flex; gap: 16px; padding: 22px 24px;
+      border-radius: var(--rl); border: 1px solid;
+    }
+    .warn.red { background: var(--red-dim); border-color: rgba(255,69,69,.24); }
+    .warn.yellow { background: var(--yellow-dim); border-color: rgba(255,180,0,.24); }
+    .warn.blue { background: var(--blue-dim); border-color: rgba(77,170,255,.24); }
+    .warn.green { background: var(--accent-dim); border-color: rgba(178,255,0,.24); }
+    .warn-ico { font-size: 22px; flex-shrink: 0; margin-top: 1px; line-height: 1; }
+    .warn h3 { font-family: var(--mono); font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+    .warn.red h3 { color: var(--red); }
+    .warn.yellow h3 { color: var(--yellow); }
+    .warn.blue h3 { color: var(--blue); }
+    .warn.green h3 { color: var(--accent); }
+    .warn p { font-size: 13.5px; color: var(--text2); line-height: 1.65; }
+    .mono-sm { font-family: var(--mono); font-size: 11px; padding: 2px 5px; border-radius: 4px; }
+    .mono-sm.red { background: rgba(255,69,69,.15); color: var(--red); }
+    .mono-sm.green { background: var(--accent-dim); color: var(--accent); }
+
+    /* FAQ */
+    .faq-list { max-width: 780px; display: flex; flex-direction: column; gap: 10px; }
+    details { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rl); overflow: hidden; transition: border-color .2s; }
+    details[open] { border-color: rgba(178,255,0,.28); }
+    summary { padding: 19px 22px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between; list-style: none; user-select: none; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    .arr { font-size: 16px; color: var(--text3); transition: transform .22s, color .2s; flex-shrink: 0; }
+    details[open] .arr { transform: rotate(180deg); color: var(--accent); }
+    .faq-body { margin: 0 22px; padding: 0 0 18px; font-size: 14px; color: var(--text2); line-height: 1.75; border-top: 1px solid var(--border); padding-top: 16px; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); padding: 44px 5vw; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+    .foot-brand { font-family: var(--mono); font-size: 14px; font-weight: 800; color: var(--accent); }
+    .foot-brand span { color: var(--text); }
+    .foot-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+    .foot-links { display: flex; gap: 22px; list-style: none; }
+    .foot-links a { font-size: 14px; color: var(--text2); text-decoration: none; transition: color .18s; }
+    .foot-links a:hover { color: var(--accent); }
+    .v-badge { font-family: var(--mono); font-size: 11px; color: var(--text3); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; }
+
+    /* REVEAL */
+    .rv { opacity: 0; transform: translateY(26px); transition: opacity .65s ease, transform .65s ease; }
+    .rv.in { opacity: 1; transform: none; }
+    .d1 { transition-delay: .1s; } .d2 { transition-delay: .2s; } .d3 { transition-delay: .3s; }
+    .d4 { transition-delay: .4s; } .d5 { transition-delay: .5s; }
+
+    /* BACK TOP */
+    .back-top {
+      position: fixed; bottom: 26px; right: 26px; z-index: 99;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--bg3); border: 1px solid var(--border2);
+      color: var(--text2); font-size: 17px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; opacity: 0; pointer-events: none;
+    }
+    .back-top.show { opacity: 1; pointer-events: auto; }
+    .back-top:hover { background: var(--accent); color: #07080C; border-color: transparent; }
+
+    /* RESPONSIVE */
+    @media (max-width: 960px) {
+      .feat-grid { grid-template-columns: repeat(2,1fr); }
+      .phases-wrap { grid-template-columns: 1fr; }
+      .p-tabs { flex-direction: row; flex-wrap: wrap; }
+      .steps { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      .warn-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 620px) {
+      .feat-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .sec { padding: 68px 5vw; }
+      footer { flex-direction: column; }
+      .hero { padding: 90px 5vw 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="logo">Deep<span>CacheCleaner</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#phases">What's Cleaned</a></li>
+    <li><a href="#howto">How to Use</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner" target="_blank" class="btn btn-ghost">⭐ GitHub</a>
+    <a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner/releases/latest/download/DeepCacheCleaner.bat" class="btn btn-primary">↓ Download</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="badge"><div class="badge-dot"></div> v3.0 — Windows 10 &amp; 11</div>
+
+  <h1>Deep<span class="ac">Cache</span><br>Cleaner</h1>
+
+  <p class="hero-sub">
+    38 cache locations. 8 phases. Zero dependencies.<br>
+    Cleans what other tools won't even touch.
+  </p>
+
+  <div class="hero-ctas">
+    <a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner/releases/latest/download/DeepCacheCleaner.bat" class="btn btn-primary btn-lg">↓ &nbsp;Download Free — .bat file</a>
+    <a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner" target="_blank" class="btn btn-ghost btn-lg">View Source →</a>
+  </div>
+
+  <div class="terminal">
+    <div class="term-bar">
+      <div class="td"></div><div class="td"></div><div class="td"></div>
+      <span class="term-title">DeepCacheCleaner.bat — Administrator: Command Prompt</span>
+    </div>
+    <div class="term-body" id="termBody"><span class="t-cursor"></span></div>
+  </div>
+</section>
+
+<!-- ─── STATS ───────────────────────────────────────── -->
+<div class="stats">
+  <div class="stat"><span class="stat-n" id="s0">0</span><span class="stat-l">Cache Locations</span></div>
+  <div class="stat"><span class="stat-n" id="s1">0</span><span class="stat-l">Phases</span></div>
+  <div class="stat"><span class="stat-n" id="s2">0</span><span class="stat-l">Dependencies</span></div>
+  <div class="stat"><span class="stat-n" id="s3">0<sup>GB+</sup></span><span class="stat-l">Max Space Freed</span></div>
+</div>
+
+<!-- ─── FEATURES ────────────────────────────────────── -->
+<section class="sec sec-alt" id="features">
+  <div class="sec-label">Why DeepCacheCleaner</div>
+  <h2>Goes deeper<br>than anything else.</h2>
+  <p class="sec-sub">Not another basic disk cleanup. This script stops Windows services, digs into system internals, and deletes what other tools skip over.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card rv"><div class="feat-icon">🔒</div><h3>Service-Aware Cleaning</h3><p>Stops 8 Windows services — including wuauserv, bits, cryptsvc — before cleaning, so locked files are properly wiped instead of silently skipped. Restores all services after.</p></div>
+    <div class="feat-card rv d1"><div class="feat-icon">🪟</div><h3>Windows Update Deep Wipe</h3><p>Clears <span class="ic">SoftwareDistribution</span>, the update history DB, <span class="ic">catroot2</span>, Delivery Optimization, and upgrade staging folders <span class="ic">Windows.old</span>, <span class="ic">~BT</span>, <span class="ic">~WS</span> — potentially 30 GB+ freed.</p></div>
+    <div class="feat-card rv d2"><div class="feat-icon">🔧</div><h3>DISM Integration</h3><p>Runs <span class="ic">StartComponentCleanup</span> via DISM to shrink the WinSxS folder by removing superseded Windows Update component versions — typically 2–6 GB recovered.</p></div>
+    <div class="feat-card rv d3"><div class="feat-icon">🌐</div><h3>All-Profile Browsers</h3><p>Loops through every installed profile for Chrome, Edge, and Firefox. Clears Cache, GPUCache, Code Cache, and Service Worker storage for every profile automatically.</p></div>
+    <div class="feat-card rv d4"><div class="feat-icon">📦</div><h3>Zero Dependencies</h3><p>Uses only tools built into Windows — DISM, wevtutil, ipconfig, wsreset, takeown, icacls, PowerShell. No installers, no third-party software. One .bat file. Run and done.</p></div>
+    <div class="feat-card rv d5"><div class="feat-icon">🔄</div><h3>5× Desktop Refresh</h3><p>After cleanup, kills and restarts explorer.exe to flush icon and thumbnail changes, then sends 5 desktop F5 refresh signals so every visual change applies instantly.</p></div>
+  </div>
+</section>
+
+<!-- ─── PHASES ───────────────────────────────────────── -->
+<section class="sec" id="phases">
+  <div class="sec-label">Full Breakdown</div>
+  <h2>What gets<br><span class="ac">cleaned.</span></h2>
+  <p class="sec-sub">Click any phase to explore exactly what it targets. Absent folders (like Windows.old) are detected and skipped automatically.</p>
+
+  <div class="phases-wrap">
+    <div class="p-tabs" id="pTabs">
+      <div class="p-tab active" onclick="showPhase(0)"><span class="p-num">01/08</span><span class="p-tname">Stop Services</span></div>
+      <div class="p-tab" onclick="showPhase(1)"><span class="p-num">02/08</span><span class="p-tname">System Cache</span></div>
+      <div class="p-tab" onclick="showPhase(2)"><span class="p-num">03/08</span><span class="p-tname">Windows Update</span></div>
+      <div class="p-tab" onclick="showPhase(3)"><span class="p-num">04/08</span><span class="p-tname">Logs &amp; Dumps</span></div>
+      <div class="p-tab" onclick="showPhase(4)"><span class="p-num">05/08</span><span class="p-tname">Browser Cache</span></div>
+      <div class="p-tab" onclick="showPhase(5)"><span class="p-num">06/08</span><span class="p-tname">App Cache</span></div>
+      <div class="p-tab" onclick="showPhase(6)"><span class="p-num">07/08</span><span class="p-tname">DISM + Services</span></div>
+      <div class="p-tab" onclick="showPhase(7)"><span class="p-num">08/08</span><span class="p-tname">Refresh ×5</span></div>
+    </div>
+
+    <div id="pPanels">
+      <!-- P0 -->
+      <div class="p-panel p-content active">
+        <div class="p-head"><h3>Phase 1 — Stop Services</h3><p>8 Windows services are paused so their files become unlockable. All are fully restored in Phase 7 after cleaning.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">SVC</div><div><h4>wuauserv + bits</h4><div class="p-item-path">Windows Update + Background Intelligent Transfer Service</div></div></div>
+          <div class="p-item"><div class="p-item-n">SVC</div><div><h4>cryptsvc</h4><div class="p-item-path">Cryptographic Services — required to unlock catroot2</div></div></div>
+          <div class="p-item"><div class="p-item-n">SVC</div><div><h4>msiserver + FontCache</h4><div class="p-item-path">Windows Installer + Font Cache service</div></div></div>
+          <div class="p-item"><div class="p-item-n">SVC</div><div><h4>DoSvc + UsoSvc + WSearch</h4><div class="p-item-path">Delivery Optimization + Update Orchestrator + Windows Search</div></div></div>
+        </div>
+      </div>
+      <!-- P1 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 2 — Core System Cache</h3><p>10 fundamental Windows cache locations that accumulate from everyday use.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">01</div><div><h4>User Temp</h4><div class="p-item-path">%TEMP%</div></div></div>
+          <div class="p-item"><div class="p-item-n">02</div><div><h4>System Temp</h4><div class="p-item-path">C:\Windows\Temp</div></div></div>
+          <div class="p-item"><div class="p-item-n">03</div><div><h4>Prefetch</h4><div class="p-item-path">C:\Windows\Prefetch</div></div></div>
+          <div class="p-item"><div class="p-item-n">04</div><div><h4>Thumbnail Cache</h4><div class="p-item-path">%LocalAppData%\Microsoft\Windows\Explorer\thumbcache_*.db</div></div></div>
+          <div class="p-item"><div class="p-item-n">05</div><div><h4>Icon Cache</h4><div class="p-item-path">%LocalAppData%\IconCache.db + iconcache_*.db</div></div></div>
+          <div class="p-item"><div class="p-item-n">06</div><div><h4>DirectX Shader Cache</h4><div class="p-item-path">%LocalAppData%\D3DSCache</div></div></div>
+          <div class="p-item"><div class="p-item-n">07</div><div><h4>Font Cache</h4><div class="p-item-path">%WinDir%\ServiceProfiles\LocalService\...\FontCache</div></div></div>
+          <div class="p-item"><div class="p-item-n">08</div><div><h4>IE / Legacy Edge Cache</h4><div class="p-item-path">%LocalAppData%\Microsoft\Windows\INetCache</div></div></div>
+          <div class="p-item"><div class="p-item-n">09</div><div><h4>Recent Files List</h4><div class="p-item-path">%AppData%\Microsoft\Windows\Recent + AutomaticDestinations + CustomDestinations</div></div></div>
+          <div class="p-item"><div class="p-item-n">10</div><div><h4>Recycle Bin</h4><div class="p-item-path">All drives — PowerShell Clear-RecycleBin</div></div></div>
+        </div>
+      </div>
+      <!-- P2 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 3 — Windows Update Deep Clean</h3><p>The heaviest phase. This is where most disk space is recovered — sometimes 30 GB+ on a long-running system.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">11</div><div><h4>SoftwareDistribution\Download</h4><div class="p-item-path">Downloaded Windows Update files</div></div></div>
+          <div class="p-item"><div class="p-item-n">12</div><div><h4>SoftwareDistribution\DataStore</h4><div class="p-item-path">Windows Update history database</div></div></div>
+          <div class="p-item"><div class="p-item-n">13</div><div><h4>catroot2</h4><div class="p-item-path">C:\Windows\System32\catroot2 — Update signature cache</div></div></div>
+          <div class="p-item"><div class="p-item-n">14</div><div><h4>Installer Patch Cache</h4><div class="p-item-path">C:\Windows\Installer\$PatchCache$</div></div></div>
+          <div class="p-item"><div class="p-item-n">15</div><div><h4>Delivery Optimization Cache</h4><div class="p-item-path">...\NetworkService\...\DeliveryOptimization</div></div></div>
+          <div class="p-item"><div class="p-item-n">16</div><div><h4>Windows Update Logs</h4><div class="p-item-path">C:\Windows\WindowsUpdate.log + Logs\WindowsUpdate\</div></div></div>
+          <div class="p-item"><div class="p-item-n">17</div><div><h4>Windows.old <span class="tag-skip">(skipped if absent)</span></h4><div class="p-item-path">Old OS installation — can be 10–30 GB</div></div></div>
+          <div class="p-item"><div class="p-item-n">18</div><div><h4>$Windows.~BT <span class="tag-skip">(skipped if absent)</span></h4><div class="p-item-path">Windows upgrade temp staging files</div></div></div>
+          <div class="p-item"><div class="p-item-n">19</div><div><h4>$Windows.~WS <span class="tag-skip">(skipped if absent)</span></h4><div class="p-item-path">Windows upgrade staging files</div></div></div>
+          <div class="p-item"><div class="p-item-n">20</div><div><h4>CBS Logs</h4><div class="p-item-path">C:\Windows\Logs\CBS\</div></div></div>
+          <div class="p-item"><div class="p-item-n">21</div><div><h4>Panther / Setup Logs</h4><div class="p-item-path">C:\Windows\Panther\</div></div></div>
+        </div>
+      </div>
+      <!-- P3 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 4 — Logs &amp; Crash Dumps</h3><p>Removes diagnostic files that accumulate silently and are rarely needed by regular users.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">22</div><div><h4>Memory Dump Files</h4><div class="p-item-path">C:\Windows\MEMORY.DMP + C:\Windows\Minidump\</div></div></div>
+          <div class="p-item"><div class="p-item-n">23</div><div><h4>Windows Error Reporting (WER)</h4><div class="p-item-path">%LocalAppData%\...\WER + C:\ProgramData\...\WER</div></div></div>
+          <div class="p-item"><div class="p-item-n">24</div><div><h4>Windows Event Logs</h4><div class="p-item-path">Application · System · Security · Setup · WindowsUpdateClient</div></div></div>
+          <div class="p-item"><div class="p-item-n">25</div><div><h4>Defender Scan History</h4><div class="p-item-path">C:\ProgramData\Microsoft\Windows Defender\Scans\History\</div></div></div>
+          <div class="p-item"><div class="p-item-n">26</div><div><h4>Driver Installation Logs</h4><div class="p-item-path">C:\Windows\inf\setupapi.dev.log + setupapi.setup.log</div></div></div>
+        </div>
+      </div>
+      <!-- P4 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 5 — Browser Cache</h3><p>Close Chrome, Edge, and Firefox first. All installed profiles are handled automatically — no manual profile selection needed.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">27</div><div><h4>Google Chrome — all profiles</h4><div class="p-item-path">Cache · Code Cache · GPUCache · Media Cache · Application Cache · Service Worker CacheStorage</div></div></div>
+          <div class="p-item"><div class="p-item-n">28</div><div><h4>Microsoft Edge — all profiles</h4><div class="p-item-path">Cache · Code Cache · GPUCache · Service Worker CacheStorage</div></div></div>
+          <div class="p-item"><div class="p-item-n">29</div><div><h4>Mozilla Firefox — all profiles</h4><div class="p-item-path">cache2 · startupCache · shader-cache · OfflineCache · storage/default</div></div></div>
+        </div>
+      </div>
+      <!-- P5 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 6 — App Cache</h3><p>Targets popular Windows apps. Uninstalled apps are automatically skipped — no errors.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">30</div><div><h4>Microsoft Teams</h4><div class="p-item-path">Cache · blob_storage · databases · GPUCache · Code Cache · tmp</div></div></div>
+          <div class="p-item"><div class="p-item-n">31</div><div><h4>Discord</h4><div class="p-item-path">Cache · Code Cache · GPUCache</div></div></div>
+          <div class="p-item"><div class="p-item-n">32</div><div><h4>Spotify</h4><div class="p-item-path">%LocalAppData%\Spotify\Storage + Data</div></div></div>
+          <div class="p-item"><div class="p-item-n">33</div><div><h4>Microsoft Office</h4><div class="p-item-path">WebServiceCache · Recent · OTele</div></div></div>
+          <div class="p-item"><div class="p-item-n">34</div><div><h4>OneDrive</h4><div class="p-item-path">logs + setup/logs</div></div></div>
+          <div class="p-item"><div class="p-item-n">35</div><div><h4>Visual Studio Code</h4><div class="p-item-path">Cache · Code Cache · GPUCache · CachedExtensionVSIXs · logs</div></div></div>
+          <div class="p-item"><div class="p-item-n">36</div><div><h4>Windows Store</h4><div class="p-item-path">wsreset.exe — resets Microsoft Store cache</div></div></div>
+          <div class="p-item"><div class="p-item-n">37</div><div><h4>DNS Cache</h4><div class="p-item-path">ipconfig /flushdns</div></div></div>
+        </div>
+      </div>
+      <!-- P6 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 7 — DISM + Restore Services</h3><p>Runs DISM to shrink WinSxS, then restores all 8 services stopped in Phase 1.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">38</div><div><h4>DISM StartComponentCleanup</h4><div class="p-item-path">DISM /online /Cleanup-Image /StartComponentCleanup — removes old WinSxS components. Takes 5–15 min.</div></div></div>
+          <div class="p-item"><div class="p-item-n">SVC</div><div><h4>Restore All Services</h4><div class="p-item-path">wuauserv · bits · cryptsvc · FontCache · DoSvc · UsoSvc · WSearch</div></div></div>
+        </div>
+      </div>
+      <!-- P7 -->
+      <div class="p-panel p-content">
+        <div class="p-head"><h3>Phase 8 — Refresh ×5</h3><p>Applies all visual cache changes without needing a full restart.</p></div>
+        <div class="p-items">
+          <div class="p-item"><div class="p-item-n">🔄</div><div><h4>Explorer.exe Restart</h4><div class="p-item-path">Kills and restarts explorer.exe — taskbar disappears briefly (1–3 sec). This is normal.</div></div></div>
+          <div class="p-item"><div class="p-item-n">×5</div><div><h4>Desktop Refresh ×5</h4><div class="p-item-path">Sends F5 via WScript.Shell to refresh icons, thumbnails, and taskbar 5 times.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW TO USE ────────────────────────────────────── -->
+<section class="sec sec-alt" id="howto">
+  <div class="sec-label">Getting Started</div>
+  <h2>Three steps.<br><span class="ac">That's it.</span></h2>
+  <p class="sec-sub">No installation. No configuration. One file, right-click, done. The script handles everything automatically.</p>
+
+  <div class="steps">
+    <div class="step rv">
+      <div class="step-n">1</div>
+      <h3>Download the file</h3>
+      <p>One single .bat file. No installer, no setup, no account required. Works on any Windows 10 or 11 machine with no configuration needed.</p>
+      <span class="code-pill">↓ DeepCacheCleaner.bat</span>
+    </div>
+    <div class="step rv d2">
+      <div class="step-n">2</div>
+      <h3>Close your browsers</h3>
+      <p>Close Chrome, Edge, and Firefox completely before running. Browser cache files are locked while the browser is open — closing them ensures a full wipe.</p>
+    </div>
+    <div class="step rv d4">
+      <div class="step-n">3</div>
+      <h3>Run as Administrator</h3>
+      <p>Right-click and select <strong>Run as administrator</strong>, or just double-click — it auto-requests elevation via UAC. Accept the prompt and let it run to completion.</p>
+      <span class="code-pill">Right-click → Run as administrator</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── WARNINGS ─────────────────────────────────────── -->
+<section class="sec" id="warnings">
+  <div class="sec-label">Before You Run</div>
+  <h2>Read this first.</h2>
+  <p class="sec-sub">The script is safe by design — but here's what to know going in.</p>
+
+  <div class="warn-grid">
+    <div class="warn red rv">
+      <div class="warn-ico">⚠️</div>
+      <div>
+        <h3>Windows.old deletion is permanent</h3>
+        <p>If <span class="mono-sm red">C:\Windows.old</span> exists, it will be permanently removed using takeown + icacls. This eliminates the ability to roll back to a previous Windows version. If the folder doesn't exist on your PC, it's automatically skipped.</p>
+      </div>
+    </div>
+    <div class="warn yellow rv d1">
+      <div class="warn-ico">⏳</div>
+      <div>
+        <h3>DISM phase takes 5–15 minutes</h3>
+        <p>Phase 7 runs DISM against the WinSxS component store. This is real processing time that varies by system age and update history. <strong>Do not close the window mid-run</strong> or the component store may be left in an inconsistent state.</p>
+      </div>
+    </div>
+    <div class="warn blue rv d2">
+      <div class="warn-ico">🌐</div>
+      <div>
+        <h3>Close browsers for a complete clean</h3>
+        <p>Browser cache files are locked by running processes. If Chrome or Firefox is open, those cache files are silently skipped. Close all browser windows before running the script for a 100% browser cache wipe.</p>
+      </div>
+    </div>
+    <div class="warn green rv d3">
+      <div class="warn-ico">✅</div>
+      <div>
+        <h3>Windows Update keeps working normally</h3>
+        <p>Clearing <span class="mono-sm green">SoftwareDistribution</span> does not break Windows Update. It simply re-downloads required files on its next check. All 8 services are fully restored by the script before it exits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FAQ ──────────────────────────────────────────── -->
+<section class="sec sec-alt" id="faq">
+  <div class="sec-label">FAQ</div>
+  <h2>Common questions.</h2>
+  <p class="sec-sub">Everything you need to know before running the script on your machine.</p>
+
+  <div class="faq-list">
+    <details open>
+      <summary>Will this break my Windows installation?<span class="arr">▾</span></summary>
+      <div class="faq-body">No. The script only deletes cache, log, and temporary files — not system binaries, registry entries, or user data. All services paused during cleaning are fully restored. Windows automatically recreates all these files on demand.</div>
+    </details>
+    <details>
+      <summary>How much disk space will I recover?<span class="arr">▾</span></summary>
+      <div class="faq-body">It depends on the system. On a regularly maintained PC: <strong>500 MB – 2 GB</strong>. On a neglected system: <strong>2 GB – 10 GB</strong>. If Windows.old or $Windows.~BT are present: an extra <strong>10 GB – 30 GB+</strong>. The WinSxS DISM cleanup typically frees another <strong>1–6 GB</strong>.</div>
+    </details>
+    <details>
+      <summary>Will my passwords, bookmarks, and history be deleted?<span class="arr">▾</span></summary>
+      <div class="faq-body">No. The script only targets cache subfolders (Cache, GPUCache, Code Cache). It does not touch browser profile data — your passwords, history, bookmarks, extensions, cookies, and saved form data are completely untouched.</div>
+    </details>
+    <details>
+      <summary>Why did my taskbar and desktop icons disappear for a second?<span class="arr">▾</span></summary>
+      <div class="faq-body">That's Phase 8 in action. The script kills and restarts explorer.exe to flush the icon and thumbnail cache. The taskbar and desktop icons disappear for 1–3 seconds while Explorer relaunches — this is completely expected behavior, not an error.</div>
+    </details>
+    <details>
+      <summary>Why does Phase 7 (DISM) take so long?<span class="arr">▾</span></summary>
+      <div class="faq-body">DISM scans the entire WinSxS component store, which can hold hundreds of old update packages depending on how long your system has been running. Older systems with more accumulated updates take longer. It's doing real work — just let it finish without interruption.</div>
+    </details>
+    <details>
+      <summary>Is it safe to run on a work computer?<span class="arr">▾</span></summary>
+      <div class="faq-body">For personal PCs with full admin access — yes, completely safe. For managed enterprise machines — check with your IT department first. The script clears Windows Event Logs and Defender scan history, which IT teams may monitor. On a home PC it is safe to run freely.</div>
+    </details>
+    <details>
+      <summary>How often should I run this?<span class="arr">▾</span></summary>
+      <div class="faq-body">Once a month is sufficient for most users. Developers or power users who install and uninstall software frequently may benefit from running it every 2–3 weeks. There is no harm in running it more often — it simply finds less to delete each time.</div>
+    </details>
+    <details>
+      <summary>Does it work on Windows 7 or Windows 8?<span class="arr">▾</span></summary>
+      <div class="faq-body">No — the script is designed and tested for <strong>Windows 10 and Windows 11 only</strong>. Commands like wsreset.exe, certain DISM flags, and several cache paths do not exist on older Windows versions.</div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── FOOTER ───────────────────────────────────────── -->
+<footer>
+  <div>
+    <div class="foot-brand">Deep<span>CacheCleaner</span></div>
+    <div class="foot-sub">MIT License — Free and open source — Windows 10 &amp; 11</div>
+  </div>
+  <ul class="foot-links">
+    <li><a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner" target="_blank">GitHub</a></li>
+    <li><a href="https://gitlab.com/YOUR_USERNAME/DeepCacheCleaner" target="_blank">GitLab</a></li>
+    <li><a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner/blob/main/README.md" target="_blank">README</a></li>
+    <li><a href="https://github.com/YOUR_USERNAME/DeepCacheCleaner/releases" target="_blank">Releases</a></li>
+  </ul>
+  <div class="v-badge">v3.0</div>
+</footer>
+
+<button class="back-top" id="btt">↑</button>
+
+<script>
+// Terminal animation
+const tLines = [
+  {t:'##################################################', c:'t-header', d:0},
+  {t:'##    DEEP CACHE CLEANER  v3.0               ##', c:'t-header', d:60},
+  {t:'##    No file left behind. Not a single one. ##', c:'t-dim', d:60},
+  {t:'##################################################', c:'t-header', d:60},
+  {t:'', d:50},
+  {t:'[PHASE 1/8]  Stopping Services...', c:'t-phase', d:100},
+  {t:'  wuauserv, bits, cryptsvc, FontCache, DoSvc  [OK]', c:'t-ok', d:80},
+  {t:'', d:40},
+  {t:'[PHASE 2/8]  Core System Cache', c:'t-phase', d:80},
+  {t:'  [01] User TEMP...                    Cleared.', c:'t-ok', d:55},
+  {t:'  [02] Windows System Temp...          Cleared.', c:'t-ok', d:55},
+  {t:'  [03] Prefetch...                     Cleared.', c:'t-ok', d:55},
+  {t:'  [04] Thumbnails + Icons...           Cleared.', c:'t-ok', d:55},
+  {t:'', d:40},
+  {t:'[PHASE 3/8]  Windows Update Deep Clean', c:'t-phase', d:80},
+  {t:'  [11] SoftwareDistribution\\Download.. Cleared.', c:'t-ok', d:65},
+  {t:'  [12] SoftwareDistribution\\DataStore. Cleared.', c:'t-ok', d:65},
+  {t:'  [13] catroot2...                     Cleared.', c:'t-ok', d:65},
+  {t:'  [17] Windows.old..................... Skipped: Not found.', c:'t-skip', d:65},
+  {t:'  [18] $Windows.~BT (8.4 GB).......... Cleared.', c:'t-ok', d:65},
+  {t:'', d:40},
+  {t:'[PHASE 5/8]  Browser Cache', c:'t-phase', d:80},
+  {t:'  [27] Chrome (3 profiles)............. Cleared.', c:'t-ok', d:60},
+  {t:'  [28] Edge (2 profiles)............... Cleared.', c:'t-ok', d:60},
+  {t:'  [29] Firefox (1 profile)............. Cleared.', c:'t-ok', d:60},
+  {t:'', d:40},
+  {t:'[PHASE 6/8]  App Cache', c:'t-phase', d:80},
+  {t:'  [30] Teams, Discord, Spotify, VSCode. Cleared.', c:'t-ok', d:65},
+  {t:'  [37] DNS Cache....................... Flushed.', c:'t-ok', d:65},
+  {t:'', d:40},
+  {t:'[PHASE 7/8]  DISM WinSxS Cleanup...', c:'t-phase', d:100},
+  {t:'  [38] DISM /Cleanup-Image............. Done. (3.2 GB freed)', c:'t-ok', d:120},
+  {t:'        Services restored............. [OK]', c:'t-ok', d:80},
+  {t:'', d:40},
+  {t:'[PHASE 8/8]  Refreshing PC x5', c:'t-phase', d:80},
+  {t:'  Refresh 1/5... 2/5... 3/5... 4/5... 5/5... Done!', c:'t-ok', d:600},
+  {t:'', d:50},
+  {t:'  38 ITEMS CLEANED. PC REFRESHED x5. COMPLETE!', c:'t-header', d:100},
+];
+
+const tb = document.getElementById('termBody');
+let li = 0;
+
+function runTerm() {
+  if (li >= tLines.length) {
+    setTimeout(() => { tb.innerHTML = '<span class="t-cursor"></span>'; li = 0; runTerm(); }, 3800);
+    return;
+  }
+  const l = tLines[li];
+  setTimeout(() => {
+    const cur = tb.querySelector('.t-cursor');
+    const s = document.createElement('span');
+    s.className = 'tl ' + (l.c || 't-dim');
+    s.textContent = l.t;
+    if (cur) tb.insertBefore(s, cur); else tb.appendChild(s);
+    tb.scrollTop = tb.scrollHeight;
+    li++;
+    runTerm();
+  }, l.d || 50);
+}
+runTerm();
+
+// Phase tabs
+function showPhase(n) {
+  document.querySelectorAll('.p-tab').forEach((t,i) => t.classList.toggle('active', i===n));
+  document.querySelectorAll('#pPanels .p-panel').forEach((p,i) => p.classList.toggle('active', i===n));
+}
+
+// Scroll reveal
+const ro = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); }), {threshold:.12});
+document.querySelectorAll('.rv').forEach(el => ro.observe(el));
+
+// Stats counter
+function cnt(el, target, sfx) {
+  let st = null;
+  requestAnimationFrame(function tick(ts) {
+    if (!st) st = ts;
+    const p = Math.min((ts - st) / 1200, 1);
+    el.innerHTML = Math.floor(p * target) + (sfx || '');
+    if (p < 1) requestAnimationFrame(tick);
+    else el.innerHTML = target + (sfx || '');
+  });
+}
+const so = new IntersectionObserver(es => {
+  if (es[0].isIntersecting) {
+    cnt(document.getElementById('s0'), 38);
+    cnt(document.getElementById('s1'), 8);
+    cnt(document.getElementById('s2'), 0);
+    document.getElementById('s3').innerHTML = '30<sup>GB+</sup>';
+    so.disconnect();
+  }
+}, {threshold:.5});
+so.observe(document.querySelector('.stats'));
+
+// Back to top
+const btt = document.getElementById('btt');
+window.addEventListener('scroll', () => btt.classList.toggle('show', scrollY > 500), {passive:true});
+btt.onclick = () => window.scrollTo({top:0,behavior:'smooth'});
+</script>
+</body>
+</html>
