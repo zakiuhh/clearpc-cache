@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────
+#  DeepCacheCleaner - Auto Release Workflow
+#
+#  Triggers when you push a tag like: v3.1 or v3.1.0
+#  Automatically creates a GitHub Release and attaches the .bat
+#
+#  How to use:
+#    git tag v3.1
+#    git push origin v3.1
+#    → Release appears on GitHub automatically
+# ─────────────────────────────────────────────────────────────
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'          # triggers on v3.0, v3.1, v4.0, v3.1.2 etc.
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to create releases
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release + attach .bat
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "DeepCacheCleaner ${{ steps.version.outputs.VERSION }}"
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## DeepCacheCleaner ${{ steps.version.outputs.VERSION }}
+
+            38 cache locations. 8 phases. Zero dependencies.
+
+            ### How to run
+            1. Download `DeepCacheCleaner.bat` below
+            2. Close your browsers
+            3. Right-click → **Run as administrator**
+
+            > See [README](https://github.com/${{ github.repository }}/blob/main/README.md) for full details.
+          files: DeepCacheCleaner.bat
+          draft: false
+          prerelease: false
