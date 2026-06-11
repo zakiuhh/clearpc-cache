@@ -1,6 +1,6 @@
 @echo off
 :: ================================================================
-::   DeepCacheCleaner.bat v3.0
+::   DeepCacheCleaner.bat v4.0
 ::   DEEP system + Windows Update leftovers wipe + refresh x5
 ::   !! MUST be run as Administrator !!
 :: ================================================================
@@ -18,21 +18,37 @@ cls
 echo.
 echo  ##################################################
 echo  ##                                              ##
-echo  ##       DEEP CACHE CLEANER  v3.0              ##
-echo  ##   No file left behind. Not a single one.    ##
+echo  ##       DEEP CACHE CLEANER  v4.0               ##
+echo  ##   No file left behind. Not a single one.     ##
 echo  ##                                              ##
 echo  ##################################################
 echo.
-echo  Full wipe starts in 3 seconds. Close your browsers!
+echo  Full wipe starts in 3 seconds. 
+echo  Closing common apps to unlock cache files...
 timeout /t 3 >nul
-cls
 
 :: ================================================================
-::  PHASE 1/8 - Stop all relevant services
+::  PHASE 0/9 - Force close apps to unlock files
 :: ================================================================
 echo.
 echo  ============================================
-echo   PHASE 1/8  ^|  Stopping Services
+echo   PHASE 0/9  ^|  Closing Apps
+echo  ============================================
+echo.
+taskkill /f /im chrome.exe /im msedge.exe /im firefox.exe >nul 2>&1
+taskkill /f /im discord.exe /im Teams.exe /im slack.exe >nul 2>&1
+taskkill /f /im steam.exe /im EpicGamesLauncher.exe /im GalaxyClient.exe >nul 2>&1
+taskkill /f /im spotify.exe /im Code.exe /im Telegram.exe /im Zoom.exe >nul 2>&1
+echo    [OK] Apps closed (if they were running).
+echo.
+timeout /t 1 >nul
+
+:: ================================================================
+::  PHASE 1/9 - Stop all relevant services
+:: ================================================================
+echo.
+echo  ============================================
+echo   PHASE 1/9  ^|  Stopping Services
 echo  ============================================
 echo.
 echo    Stopping Windows Update (wuauserv)...
@@ -57,10 +73,10 @@ echo.
 timeout /t 1 >nul
 
 :: ================================================================
-::  PHASE 2/8 - Core System Cache
+::  PHASE 2/9 - Core System Cache
 :: ================================================================
 echo  ============================================
-echo   PHASE 2/8  ^|  Core System Cache
+echo   PHASE 2/9  ^|  Core System Cache
 echo  ============================================
 echo.
 
@@ -114,10 +130,10 @@ echo         Emptied.
 echo.
 
 :: ================================================================
-::  PHASE 3/8 - Windows Update DEEP CLEAN
+::  PHASE 3/9 - Windows Update DEEP CLEAN
 :: ================================================================
 echo  ============================================
-echo   PHASE 3/8  ^|  Windows Update Deep Clean
+echo   PHASE 3/9  ^|  Windows Update Deep Clean
 echo  ============================================
 echo.
 
@@ -189,10 +205,10 @@ echo         Cleared.
 echo.
 
 :: ================================================================
-::  PHASE 4/8 - Crash Dumps, Logs, Error Reports
+::  PHASE 4/9 - Crash Dumps, Logs, Error Reports
 :: ================================================================
 echo  ============================================
-echo   PHASE 4/8  ^|  Dumps, Logs, Error Reports
+echo   PHASE 4/9  ^|  Dumps, Logs, Error Reports
 echo  ============================================
 echo.
 
@@ -226,10 +242,10 @@ echo         Cleared.
 echo.
 
 :: ================================================================
-::  PHASE 5/8 - Browser Cache
+::  PHASE 5/9 - Browser Cache
 :: ================================================================
 echo  ============================================
-echo   PHASE 5/8  ^|  Browser Cache
+echo   PHASE 5/9  ^|  Browser Cache
 echo  ============================================
 echo.
 
@@ -266,10 +282,10 @@ echo         Cleared.
 echo.
 
 :: ================================================================
-::  PHASE 6/8 - App Cache
+::  PHASE 6/9 - Communication ^& Social Cache
 :: ================================================================
 echo  ============================================
-echo   PHASE 6/8  ^|  App Cache
+echo   PHASE 6/9  ^|  Communication ^& Social
 echo  ============================================
 echo.
 
@@ -288,23 +304,69 @@ del /f /s /q "%AppData%\discord\Code Cache\*.*"  >nul 2>&1
 del /f /s /q "%AppData%\discord\GPUCache\*.*"    >nul 2>&1
 echo         Cleared.
 
-echo    [32] Spotify...
+echo    [32] Telegram Desktop...
+del /f /s /q "%AppData%\Telegram Desktop\tdata\temp_items\*.*" >nul 2>&1
+del /f /s /q "%AppData%\Telegram Desktop\tdata\thumbnails\*.*" >nul 2>&1
+echo         Cleared.
+
+echo    [33] Slack...
+del /f /s /q "%AppData%\Slack\Cache\*.*"        >nul 2>&1
+del /f /s /q "%AppData%\Slack\Code Cache\*.*"   >nul 2>&1
+del /f /s /q "%AppData%\Slack\GPUCache\*.*"     >nul 2>&1
+echo         Cleared.
+
+echo    [34] Zoom...
+del /f /s /q "%AppData%\Zoom\data\*.*" >nul 2>&1
+echo         Cleared.
+
+echo    [35] Spotify...
 del /f /s /q "%LocalAppData%\Spotify\Storage\*.*" >nul 2>&1
 del /f /s /q "%LocalAppData%\Spotify\Data\*.*"    >nul 2>&1
 echo         Cleared.
 
-echo    [33] Microsoft Office cache...
-del /f /s /q "%LocalAppData%\Microsoft\Office\16.0\WebServiceCache\*.*" >nul 2>&1
-del /f /s /q "%AppData%\Microsoft\Office\Recent\*.*"                     >nul 2>&1
-del /f /s /q "%LocalAppData%\Microsoft\Office\OTele\*.*"                 >nul 2>&1
+echo.
+
+:: ================================================================
+::  PHASE 7/9 - Gaming ^& Hardware Cache
+:: ================================================================
+echo  ============================================
+echo   PHASE 7/9  ^|  Gaming ^& Hardware
+echo  ============================================
+echo.
+
+echo    [36] Steam...
+if exist "%ProgramFiles(x86)%\Steam" (
+    del /f /s /q "%ProgramFiles(x86)%\Steam\appcache\*.*" >nul 2>&1
+    del /f /s /q "%ProgramFiles(x86)%\Steam\config\htmlcache\*.*" >nul 2>&1
+    del /f /s /q "%ProgramFiles(x86)%\Steam\tenfoot\resource\images\*.*" >nul 2>&1
+)
 echo         Cleared.
 
-echo    [34] OneDrive logs...
-del /f /s /q "%LocalAppData%\Microsoft\OneDrive\logs\*.*"        >nul 2>&1
-del /f /s /q "%LocalAppData%\Microsoft\OneDrive\setup\logs\*.*"  >nul 2>&1
+echo    [37] Epic Games Launcher...
+del /f /s /q "%LocalAppData%\EpicGamesLauncher\Saved\webcache\*.*" >nul 2>&1
 echo         Cleared.
 
-echo    [35] Visual Studio Code cache...
+echo    [38] NVIDIA Shader Cache...
+if exist "%LocalAppData%\NVIDIA\DXCache" del /f /s /q "%LocalAppData%\NVIDIA\DXCache\*.*" >nul 2>&1
+if exist "%LocalAppData%\NVIDIA\GLCache" del /f /s /q "%LocalAppData%\NVIDIA\GLCache\*.*" >nul 2>&1
+if exist "%LocalAppData%\NVIDIA\NvCache" del /f /s /q "%LocalAppData%\NVIDIA\NvCache\*.*" >nul 2>&1
+echo         Cleared.
+
+echo    [39] AMD Shader Cache...
+if exist "%LocalAppData%\AMD\DxCache" del /f /s /q "%LocalAppData%\AMD\DxCache\*.*" >nul 2>&1
+echo         Cleared.
+
+echo.
+
+:: ================================================================
+::  PHASE 8/9 - Developer ^& System Tools
+:: ================================================================
+echo  ============================================
+echo   PHASE 8/9  ^|  Developer ^& System Tools
+echo  ============================================
+echo.
+
+echo    [40] Visual Studio Code...
 del /f /s /q "%AppData%\Code\Cache\*.*"                   >nul 2>&1
 del /f /s /q "%AppData%\Code\Code Cache\*.*"              >nul 2>&1
 del /f /s /q "%AppData%\Code\GPUCache\*.*"                >nul 2>&1
@@ -312,24 +374,59 @@ del /f /s /q "%AppData%\Code\CachedExtensionVSIXs\*.*"   >nul 2>&1
 del /f /s /q "%AppData%\Code\logs\*.*"                    >nul 2>&1
 echo         Cleared.
 
-echo    [36] Windows Store (wsreset)...
+echo    [41] npm cache...
+if exist "%AppData%\npm-cache" rd /s /q "%AppData%\npm-cache" >nul 2>&1
+echo         Cleared.
+
+echo    [42] Yarn cache...
+if exist "%LocalAppData%\Yarn\Cache" rd /s /q "%LocalAppData%\Yarn\Cache" >nul 2>&1
+echo         Cleared.
+
+echo    [43] Bun cache...
+if exist "%LocalAppData%\bun-cache" rd /s /q "%LocalAppData%\bun-cache" >nul 2>&1
+echo         Cleared.
+
+echo    [44] NuGet cache...
+if exist "%LocalAppData%\NuGet\v3-cache" rd /s /q "%LocalAppData%\NuGet\v3-cache" >nul 2>&1
+echo         Cleared.
+
+echo    [45] Python pip cache...
+if exist "%LocalAppData%\pip\cache" rd /s /q "%LocalAppData%\pip\cache" >nul 2>&1
+echo         Cleared.
+
+echo    [46] Microsoft Office...
+del /f /s /q "%LocalAppData%\Microsoft\Office\16.0\WebServiceCache\*.*" >nul 2>&1
+del /f /s /q "%AppData%\Microsoft\Office\Recent\*.*"                     >nul 2>&1
+del /f /s /q "%LocalAppData%\Microsoft\Office\OTele\*.*"                 >nul 2>&1
+echo         Cleared.
+
+echo    [47] OneDrive logs...
+del /f /s /q "%LocalAppData%\Microsoft\OneDrive\logs\*.*"        >nul 2>&1
+del /f /s /q "%LocalAppData%\Microsoft\OneDrive\setup\logs\*.*"  >nul 2>&1
+echo         Cleared.
+
+echo    [48] Winget cache...
+if exist "%LocalAppData%\Temp\WinGet" rd /s /q "%LocalAppData%\Temp\WinGet" >nul 2>&1
+echo         Cleared.
+
+echo    [49] Windows Store (wsreset)...
 start /wait wsreset.exe >nul 2>&1
 echo         Done.
 
-echo    [37] DNS Cache...
+echo    [50] DNS Cache...
 ipconfig /flushdns >nul 2>&1
 echo         Flushed.
 
 echo.
 
 :: ================================================================
-::  PHASE 7/8 - DISM WinSxS Component Cleanup + Restore Services
+::  PHASE 9/9 - DISM WinSxS Component Cleanup + Restore Services
 :: ================================================================
 echo  ============================================
-echo   PHASE 7/8  ^|  DISM WinSxS Cleanup
+echo   PHASE 9/9  ^|  DISM WinSxS Cleanup
 echo  ============================================
 echo.
-echo    [38] Running DISM component store cleanup...
+echo    [51] Running DISM component store cleanup...
 echo         Removes superseded Windows Update components from WinSxS.
 echo         This can take 5-15 mins. DO NOT close this window!!
 echo.
@@ -352,10 +449,10 @@ echo    [OK] All services restored.
 echo.
 
 :: ================================================================
-::  PHASE 8/8 - Refresh PC x5
+::  Final Refresh ^& Summary
 :: ================================================================
 echo  ============================================
-echo   PHASE 8/8  ^|  Refreshing PC x5
+echo   Refreshing PC x5
 echo  ============================================
 echo.
 echo    Restarting Explorer to flush icon/thumbnail changes...
@@ -371,8 +468,8 @@ powershell -Command "$wsh = New-Object -ComObject WScript.Shell; for ($i = 1; $i
 echo.
 echo  ##################################################
 echo  ##                                              ##
-echo  ##   38 ITEMS DEEP CLEANED. PC REFRESHED x5.  ##
-echo  ##   Windows is SQUEAKY CLEAN bestie!!         ##
+echo  ##   51 ITEMS DEEP CLEANED. PC REFRESHED x5.    ##
+echo  ##   Windows is SQUEAKY CLEAN bestie!!          ##
 echo  ##                                              ##
 echo  ##################################################
 echo.
@@ -380,12 +477,13 @@ echo  Cleaned:
 echo   System: Temp, Prefetch, Icons, Thumbnails, Shader Cache
 echo   WinUpdate: Downloaded files, History DB, catroot2, Logs
 echo   Leftovers: Windows.old, ^$Windows.~BT, ^$Windows.~WS
-echo   Logs: CBS, Panther, Event Logs, Crash Dumps, WER
+echo   Logs: CBS, Panther, Event Logs, Crash Dumps, WER, Defender
 echo   Browsers: Chrome, Edge, Firefox (all profiles)
-echo   Apps: Teams, Discord, Spotify, VSCode, Office, OneDrive
-echo   System: WinSxS via DISM, DNS, Recycle Bin, Store Cache
+echo   Comms: Teams, Discord, Telegram, Slack, Zoom
+echo   Gaming: Steam, Epic Games, NVIDIA/AMD Shader Caches
+echo   Dev: VSCode, npm, Yarn, Bun, NuGet, pip, Winget
+echo   System: WinSxS via DISM, DNS, Recycle Bin, Store, Office
 echo.
-echo  TIP: Close all apps before running for a deeper clean!
 echo  TIP: Run this once a month for best performance.
 echo.
 pause
