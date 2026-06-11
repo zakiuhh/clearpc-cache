@@ -1206,7 +1206,7 @@
     <div class="copy-run-wrap rv d5">
       <span class="copy-run-label">Quick Run (PowerShell)</span>
       <div class="copy-box">
-        <code id="cmdCode">irm https://raw.githubusercontent.com/zakiuhh/clearpc-cache/main/DeepCacheCleaner.bat | iex</code>
+        <code id="cmdCode">$t="$env:TEMP\clean.bat"; irm https://raw.githubusercontent.com/zakiuhh/clearpc-cache/main/DeepCacheCleaner.bat -OutFile $t; & $t; rm $t</code>
         <button class="copy-btn" onclick="copyCmd()" title="Copy command">
           <i data-lucide="copy" id="copyIcon"></i>
         </button>
