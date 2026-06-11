@@ -11,6 +11,9 @@
   <meta property="og:description"
     content="51 cache locations. 9 phases. Zero dependencies. The deepest Windows cleaner in a single .bat file.">
   <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DeepCacheCleaner v4.0">
+  <meta name="twitter:description" content="51 cache locations. 9 phases. Gamer-ready and Developer-optimized Windows cleaner.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -42,6 +45,75 @@
       --body: 'Outfit', sans-serif;
       --r: 8px;
       --rl: 14px;
+    }
+
+    .term-scanline {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.12;
+    }
+
+    .copy-run-wrap {
+      margin-top: 48px;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .copy-run-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .copy-box {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color .2s;
+    }
+
+    .copy-box:hover {
+      border-color: var(--border3);
+    }
+
+    .copy-box code {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .copy-btn {
+      background: var(--bg4);
+      color: var(--text2);
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      transition: all .2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
     }
 
     *,
@@ -1127,7 +1199,18 @@
         <div class="td"></div>
         <span class="term-title">DeepCacheCleaner.bat — Administrator: Command Prompt</span>
       </div>
+      <div class="term-scanline"></div>
       <div class="term-body" id="termBody"><span class="t-cursor"></span></div>
+    </div>
+
+    <div class="copy-run-wrap rv d5">
+      <span class="copy-run-label">Quick Run (PowerShell)</span>
+      <div class="copy-box">
+        <code id="cmdCode">irm https://raw.githubusercontent.com/zakiuhh/clearpc-cache/main/DeepCacheCleaner.bat | iex</code>
+        <button class="copy-btn" onclick="copyCmd()" title="Copy command">
+          <i data-lucide="copy" id="copyIcon"></i>
+        </button>
+      </div>
     </div>
   </section>
 
@@ -1689,6 +1772,25 @@
     const btt = document.getElementById('btt');
     window.addEventListener('scroll', () => btt.classList.toggle('show', scrollY > 500), { passive: true });
     btt.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Copy command
+    function copyCmd() {
+      const code = document.getElementById('cmdCode').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const ico = document.getElementById('copyIcon');
+        btn.style.background = 'var(--accent)';
+        btn.style.color = '#000';
+        ico.setAttribute('data-lucide', 'check');
+        lucide.createIcons();
+        setTimeout(() => {
+          btn.style.background = '';
+          btn.style.color = '';
+          ico.setAttribute('data-lucide', 'copy');
+          lucide.createIcons();
+        }, 2000);
+      });
+    }
 
     // Initialize Lucide icons
     lucide.createIcons();
